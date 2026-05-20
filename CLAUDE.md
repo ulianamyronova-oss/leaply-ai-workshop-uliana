@@ -244,29 +244,50 @@ Never paste raw terminal walls at the user.
 
 ### Rule 1 — shadcn components: install, don't write
 
-When a UI primitive is needed (button, dialog, input, dropdown, sheet,
-toast, table, etc.):
+When a UI primitive is needed (button, dialog, input, card, dropdown,
+sheet, toast, table, etc.):
 
 1. **Check first** whether it already exists in `components/ui/`.
-2. If not, install it with the shadcn CLI — **without `@latest`**:
+2. If not, install it with the shadcn CLI — **only this exact form**:
    ```bash
    npx shadcn add <component>
    ```
-   `npx shadcn@latest` is forbidden — it ignores the version pinned in
-   `package.json` and is the root cause of the "registry requires
-   authentication" error against the `radix-nova` style registry.
-   Always use plain `npx shadcn add`.
+
+**Three hard bans:**
+
+- ❌ `npx shadcn@latest add …` — ignores the pinned version.
+- ❌ `npm install shadcn@latest` (or any bump of the `shadcn` dep),
+  whether you run it or you ask the user to paste it. The pinned
+  version is the supported one for this `components.json`. Bumping
+  shadcn is a **separate, user-initiated workflow** — only do it when
+  the user explicitly says "update shadcn", not as a workaround for
+  any install error.
+- ❌ Justifying a bump with phrases like _"it's a known situation
+  with our radix-nova template"_ or _"the registry requires an updated
+  CLI"_. Those claims are hallucinated. The radix-nova 401 is a
+  transient registry-side issue, not version-related.
+
+**If your own install fails:** you may ask the user to paste the
+**exact same** `npx shadcn add <name>` on their machine — that's a
+legitimate fallback (sandbox network issues don't reproduce on their
+hardware). The strict guardrail: the command you hand them is plain
+`npx shadcn add …`, with no `@latest`, no `@<version>`, and no
+`npm install shadcn@anything` chained in. Same command, different
+host — not a bump.
+
+What stays forbidden when an install fails: bumping the shadcn dep
+(directly or via the user), substituting hand-written `<div>` markup,
+changing `components.json`, or reframing a bump as "a small step on
+their side". See the troubleshooting section in
+`.claude/skills/shadcn-component/SKILL.md`.
+
 3. Import it via the `@/components/ui/<name>` alias.
 
-**If the install fails, escalate — never silently fall back to a
-hand-written `<div>` styled with the same CSS variables.** That's a
-Rule 1 violation. See the troubleshooting section in
-`.claude/skills/shadcn-component/SKILL.md` for the diagnosis/retry
-order.
-
-Never paste a hand-written `Button.tsx` based on memory. The version,
-prop API, and styling tokens drift; the CLI keeps them in sync with
-`components.json`.
+Never paste a hand-written `Button.tsx` (or `Card`, or anything) based
+on memory. Even when the user already asked you to "just make it work"
+— that's the most common Rule 1 violation, and the resulting markup
+drifts from the design system, breaks dark mode, and skips
+accessibility.
 
 ### Rule 2 — Decompose components over ~200 lines
 
