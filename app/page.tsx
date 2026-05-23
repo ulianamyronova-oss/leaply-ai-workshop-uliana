@@ -1,19 +1,21 @@
-import { Button } from "@/components/ui/button"
+import { HomeContent } from "@/components/home/home-content"
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
+    <main className="relative min-h-svh overflow-x-hidden bg-background text-foreground">
+      <div className="relative mx-auto flex max-w-3xl flex-col gap-10 px-6 py-10 sm:gap-12 sm:py-14">
+        <header className="flex flex-col items-center text-center">
+          <h1 className="font-display text-5xl leading-none tracking-tight text-foreground sm:text-6xl">
+            Wizard&apos;s Library
+          </h1>
+        </header>
+
+        <HomeContent />
+
+        <footer className="text-center font-mono text-xs tracking-[0.08em] text-muted-foreground/60 uppercase">
+          press d to switch to night
+        </footer>
       </div>
-    </div>
+    </main>
   )
 }

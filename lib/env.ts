@@ -11,8 +11,11 @@ const EnvSchema = z.object({
   // Example public var (safe to expose to the browser):
   // NEXT_PUBLIC_APP_URL: z.string().url(),
 
-  // Example server-only secret (never NEXT_PUBLIC_):
-  // OPENAI_API_KEY: z.string().min(1),
+  // Comma-separated list of Google Gemini API keys (server-only). The Gemini
+  // routes rotate through them in order: the first key whose call returns 2xx
+  // wins; failures (quota, rate limit, etc.) bump to the next key.
+  // See lib/gemini-keys.ts for the rotation helper.
+  GEMINI_API_KEYS: z.string().min(10),
 })
 
 export const env = EnvSchema.parse(process.env)
