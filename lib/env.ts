@@ -15,7 +15,12 @@ const EnvSchema = z.object({
   // routes rotate through them in order: the first key whose call returns 2xx
   // wins; failures (quota, rate limit, etc.) bump to the next key.
   // See lib/gemini-keys.ts for the rotation helper.
-  GEMINI_API_KEYS: z.string().min(10),
+  //
+  // Allowed to be empty so that the build doesn't crash if the var isn't
+  // configured (e.g. on a fresh Vercel deploy before envs are set). At
+  // request time, the API route returns a 502 with no-keys-configured
+  // and the client falls back to deterministic stub chapters.
+  GEMINI_API_KEYS: z.string().default(""),
 })
 
 export const env = EnvSchema.parse(process.env)

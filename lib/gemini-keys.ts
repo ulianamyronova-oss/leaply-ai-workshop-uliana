@@ -1,16 +1,12 @@
 import { env } from "./env"
 
 // Pre-split + trim once at module load. Filter blanks so an extra comma in
-// the env file doesn't add an empty key.
+// the env file doesn't add an empty key. May be empty during a deploy
+// where the env var hasn't been configured yet — `callGeminiWithRotation`
+// handles that case at request time.
 const KEYS = env.GEMINI_API_KEYS.split(",")
   .map((k) => k.trim())
   .filter(Boolean)
-
-if (KEYS.length === 0) {
-  throw new Error(
-    "GEMINI_API_KEYS must contain at least one comma-separated key"
-  )
-}
 
 export function geminiKeyCount(): number {
   return KEYS.length
@@ -24,6 +20,18 @@ export async function callGeminiWithRotation(
   buildUrl: (key: string) => string,
   init: RequestInit
 ): Promise<Response> {
+  if (KEYS.length === 0) {
+    // No keys configured (e.g. fresh Vercel deploy without env vars).
+    // Return a uniform 502 so the client-side fallback to stub chapters fires.
+    return new Response(
+      JSON.stringify({
+        error:
+          "No Gemini API keys configured. Set GEMINI_API_KEYS in environment variables.",
+      }),
+      { status: 502, headers: { "Content-Type": "application/json" } }
+    )
+  }
+
   let last: Response | null = null
   for (const key of KEYS) {
     let res: Response
@@ -42,11 +50,7 @@ export async function callGeminiWithRotation(
     )
     last = res
   }
-  // Every key failed. Return the last failure so the caller can read
-  // its status + body and decide whether to fall back to a stub.
   if (last) return last
-  // No response at all — every fetch threw. Synthesise a 502 so callers
-  // get a uniform Response shape.
   return new Response(
     JSON.stringify({ error: "All Gemini keys failed to connect" }),
     { status: 502, headers: { "Content-Type": "application/json" } }
